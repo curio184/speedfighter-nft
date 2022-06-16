@@ -136,8 +136,8 @@ class DigitRecognitionUsecase:
             # カテゴリを推測する
             numbers: List[str] = []
             for mat_digit in mat_digits:
-                result = classifier.predict(model, class_names, mat_digit)
-                numbers.append(result)
+                pre_number, pre_accuracy = classifier.predict(model, class_names, mat_digit)
+                numbers.append(pre_number)
 
             # 推測結果を表示する
             mat_gbr = splitter.draw_bounding_box(mat_gbr, numbers)
@@ -197,8 +197,8 @@ class DigitRecognitionUsecase:
             # カテゴリを推測する
             numbers: List[str] = []
             for mat_digit in mat_digits:
-                result = classifier.predict(interpreter, class_names, mat_digit)
-                numbers.append(result)
+                pre_number, pre_accuracy = classifier.predict(interpreter, class_names, mat_digit)
+                numbers.append(pre_number)
 
             # 推測結果を表示する
             mat_gbr = splitter.draw_bounding_box(mat_gbr, numbers)

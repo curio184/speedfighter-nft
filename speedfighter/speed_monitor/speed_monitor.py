@@ -95,13 +95,15 @@ class SpeedMonitor(AppBase, Thread):
             mat_digits = splitter.split_into_digits(mat_gbr)
 
             # 画像のカテゴリを推測する
-            predicted_results: List[str] = []
+            pre_numbers: List[str] = []
+            pre_accuracies: List[int] = []
             for mat_digit in mat_digits:
-                predicted_result = classifier.predict(interpreter, class_names, mat_digit)
-                predicted_results.append(predicted_result)
+                pre_number, pre_accuracy = classifier.predict(interpreter, class_names, mat_digit)
+                pre_numbers.append(pre_number)
+                pre_accuracies.append(pre_accuracy)
 
             # 推測結果を描画する
-            mat_gbr = splitter.draw_bounding_box(mat_gbr, predicted_results)
+            mat_gbr = splitter.draw_bounding_box(mat_gbr, pre_numbers)
 
             # フレームレートを計算し描画する
             fps = fps_counter.count()
@@ -109,7 +111,7 @@ class SpeedMonitor(AppBase, Thread):
             ImageEditor.draw_text(mat_gbr, "{:.1f}fps".format(fps), (50, 50))
 
             # 推測結果をスピードに変換する
-            speed = self._predicted_results_to_speed(predicted_results)
+            speed = self._prediction_class_names_to_speed(pre_numbers, pre_accuracies)
 
             # スピードを検出できた場合
             if speed > 0:
@@ -138,14 +140,16 @@ class SpeedMonitor(AppBase, Thread):
         self._logger.info("Speed monitor stopped.")
         self._release()
 
-    def _predicted_results_to_speed(self, predicted_results: List[str]) -> int:
+    def _prediction_numbers_to_speed(self, prediction_numbers: List[str], prediction_accuracies: List[int]) -> int:
         """
         推測結果をスピードに変換する
 
         Parameters
         ----------
-        predicted_results : List[str]
+        prediction_numbers : List[str]
             推測結果のリスト
+        prediction_accuracies : List[int]
+            推測精度のリスト
 
         Returns
         -------
@@ -153,16 +157,21 @@ class SpeedMonitor(AppBase, Thread):
             スピード
         """
 
-        if "no_signal" in predicted_results:
+        if "no_signal" in prediction_numbers:
             return 0
 
-        pattern = [str.isdigit(x) for x in predicted_results]
+        # 推測精度が閾値を満たさない場合、無視する
+        for pre_accuracy in prediction_accuracies:
+            if pre_accuracy < 80:
+                return 0
+
+        pattern = [str.isdigit(x) for x in prediction_numbers]
         if pattern == [True, True, True]:
-            return int(predicted_results[0] + predicted_results[1] + predicted_results[2])
+            return int(prediction_numbers[0] + prediction_numbers[1] + prediction_numbers[2])
         elif pattern == [False, True, True]:
-            return int(predicted_results[1] + predicted_results[2])
+            return int(prediction_numbers[1] + prediction_numbers[2])
         elif pattern == [False, False, True]:
-            return int(predicted_results[2])
+            return int(prediction_numbers[2])
         else:
             return 0
 
@@ -210,5 +219,5 @@ if __name__ == "__main__":
     monitor = SpeedMonitor(should_stop)
     monitor.start()
 
-    time.sleep(30)
+    time.sleep(180)
     should_stop.set()
