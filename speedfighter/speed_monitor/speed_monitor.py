@@ -49,8 +49,8 @@ class SpeedMonitor(AppBase, Thread):
             self._capture = DummyVideoCaputure(self._capture_source_dir)
         else:
             self._capture = cv2.VideoCapture(0)
-        if not self._capture.isOpened():
-            raise Exception("Failed to initialize video capture device.")
+            if not self._capture.isOpened():
+                raise Exception("Failed to initialize video capture device.")
 
     def _release(self):
         cv2.destroyAllWindows()
@@ -111,7 +111,7 @@ class SpeedMonitor(AppBase, Thread):
             ImageEditor.draw_text(mat_gbr, "{:.1f}fps".format(fps), (50, 50))
 
             # 推測結果をスピードに変換する
-            speed = self._prediction_class_names_to_speed(pre_numbers, pre_accuracies)
+            speed = self._prediction_numbers_to_speed(pre_numbers, pre_accuracies)
 
             # スピードを検出できた場合
             if speed > 0:
