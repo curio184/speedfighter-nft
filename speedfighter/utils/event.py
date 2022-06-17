@@ -21,9 +21,10 @@ class EventHandler:
     イベントハンドラー
     """
 
-    def __init__(self, obj):
-        max_size = 10
-        self._queue = Queue(max_size)
+    def __init__(self, obj, max_queue_size: int = 0):
+        # すべてのイベント実行を保証したいときはqueue_size=0(無限)を指定
+        self._max_queue_size = max_queue_size
+        self._queue = Queue(self._max_queue_size)
         self._obj = obj
         self._funcs = []
 
@@ -44,7 +45,11 @@ class EventHandler:
         """
         eventを実行する
         """
-        self._queue.put(eargs)
+        if self._max_queue_size == 0:
+            self._queue.put_nowait(eargs)
+        # キューがスタックしているときはイベントを抑制する
+        elif self._queue.qsize() < self._max_queue_size:
+            self._queue.put_nowait(eargs)
 
     def listen(self):
         """

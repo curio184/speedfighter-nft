@@ -42,7 +42,7 @@ class SpeedMonitor(AppBase, Thread):
         self._should_stop = should_stop
 
         # イベント制御
-        self._speed_detected_eventhandler = EventHandler(self)
+        self._speed_detected_eventhandler = EventHandler(self, 10)
 
         # VideoCaptureオブジェクトを初期化
         if self._capture_devide == "DummyVideoCapture":
