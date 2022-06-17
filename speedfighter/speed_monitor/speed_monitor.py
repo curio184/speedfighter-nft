@@ -111,7 +111,7 @@ class SpeedMonitor(AppBase, Thread):
             ImageEditor.draw_text(mat_gbr, "{:.1f}fps".format(fps), (50, 50))
 
             # 推測結果をスピードに変換する
-            speed = self._prediction_numbers_to_speed(pre_numbers, pre_accuracies)
+            speed = self._prediction_numbers_to_speed(pre_numbers, pre_accuracies, 80)
 
             # スピードを検出できた場合
             if speed > 0:
@@ -140,7 +140,12 @@ class SpeedMonitor(AppBase, Thread):
         self._logger.info("Speed monitor stopped.")
         self._release()
 
-    def _prediction_numbers_to_speed(self, prediction_numbers: List[str], prediction_accuracies: List[int]) -> int:
+    def _prediction_numbers_to_speed(
+        self,
+        prediction_numbers: List[str],
+        prediction_accuracies: List[int],
+        accuracy_threshold: int
+    ) -> int:
         """
         推測結果をスピードに変換する
 
@@ -150,6 +155,8 @@ class SpeedMonitor(AppBase, Thread):
             推測結果のリスト
         prediction_accuracies : List[int]
             推測精度のリスト
+        accuracy_threshold : int
+            推測精度の閾値(0~100)
 
         Returns
         -------
@@ -158,13 +165,13 @@ class SpeedMonitor(AppBase, Thread):
         """
 
         if "no_signal" in prediction_numbers:
+            return (0, False)
+
+        # 推測精度が閾値を満たない場合
+        if not all([pre_accuracy >= accuracy_threshold for pre_accuracy in prediction_accuracies]):
             return 0
 
-        # 推測精度が閾値を満たさない場合、無視する
-        for pre_accuracy in prediction_accuracies:
-            if pre_accuracy < 80:
-                return 0
-
+        # 各桁の組み合わせが不正であれば除外
         pattern = [str.isdigit(x) for x in prediction_numbers]
         if pattern == [True, True, True]:
             return int(prediction_numbers[0] + prediction_numbers[1] + prediction_numbers[2])
