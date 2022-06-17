@@ -3,11 +3,16 @@ from typing import List
 
 import cv2
 
-from speedfighter.digit_recognition.image_classifier import ImageClassifier
+try:
+    # Desktop Only
+    from speedfighter.digit_recognition.image_classifier import ImageClassifier
+    from speedfighter.digit_recognition.tfmodel_converter import \
+        TFModelConverter
+except:
+    pass
 from speedfighter.digit_recognition.image_classifier_lite import \
     ImageClassifierLite
 from speedfighter.digit_recognition.seven_seg_splitter import SevenSegSplitter
-from speedfighter.digit_recognition.tfmodel_converter import TFModelConverter
 from speedfighter.digit_recognition.training_dataset_creator import \
     TrainingDatasetCreator
 from speedfighter.digit_recognition.video_camera import VideoCamera
@@ -136,8 +141,8 @@ class DigitRecognitionUsecase:
             # カテゴリを推測する
             numbers: List[str] = []
             for mat_digit in mat_digits:
-                result = classifier.predict(model, class_names, mat_digit)
-                numbers.append(result)
+                pre_number, pre_accuracy = classifier.predict(model, class_names, mat_digit)
+                numbers.append(pre_number)
 
             # 推測結果を表示する
             mat_gbr = splitter.draw_bounding_box(mat_gbr, numbers)
@@ -197,8 +202,8 @@ class DigitRecognitionUsecase:
             # カテゴリを推測する
             numbers: List[str] = []
             for mat_digit in mat_digits:
-                result = classifier.predict(interpreter, class_names, mat_digit)
-                numbers.append(result)
+                pre_number, pre_accuracy = classifier.predict(interpreter, class_names, mat_digit)
+                numbers.append(pre_number)
 
             # 推測結果を表示する
             mat_gbr = splitter.draw_bounding_box(mat_gbr, numbers)

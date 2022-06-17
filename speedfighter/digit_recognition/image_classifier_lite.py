@@ -1,7 +1,7 @@
 import codecs
 import json
 import time
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 from cv2 import Mat
@@ -72,7 +72,7 @@ class ImageClassifierLite(AppBase):
         with codecs.open(class_names_json_path, "r", "utf8") as f:
             return json.load(f)
 
-    def predict(self, interpreter: Interpreter, class_names: List[str], mat_bgr: Mat) -> str:
+    def predict(self, interpreter: Interpreter, class_names: List[str], mat_bgr: Mat) -> Tuple[str, int]:
         """
         学習済みのモデルを利用し、画像のカテゴリを推測します。
 
@@ -87,8 +87,8 @@ class ImageClassifierLite(AppBase):
 
         Returns
         -------
-        str
-            カテゴリ名
+        Tuple[str, int]
+            (カテゴリ名, 精度0~100)
         """
 
         # 入力層の形状(画像の横幅/高さ/チャンネル)
@@ -134,4 +134,4 @@ class ImageClassifierLite(AppBase):
             ((stop_time - start_time) * 1000)
         ))
 
-        return class_names[prediction.argmax()]
+        return (class_names[prediction.argmax()], int(prediction[prediction.argmax()] * 100))

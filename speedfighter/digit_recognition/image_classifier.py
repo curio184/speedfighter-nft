@@ -459,7 +459,7 @@ class ImageClassifier(AppBase):
                 th_view = TrainHistoryView()
                 th_view.show(history)
 
-    def predict(self, model: Sequential, class_names: List[str], mat_bgr: Mat) -> str:
+    def predict(self, model: Sequential, class_names: List[str], mat_bgr: Mat) -> Tuple[str, int]:
         """
         学習済みのモデルを利用し、画像のカテゴリを推測します。
 
@@ -474,8 +474,8 @@ class ImageClassifier(AppBase):
 
         Returns
         -------
-        str
-            カテゴリ名
+        Tuple[str, int]
+            (カテゴリ名, 精度0~100)
         """
 
         # 入力層の形状(画像の横幅/高さ/チャンネル)
@@ -515,4 +515,4 @@ class ImageClassifier(AppBase):
             ((stop_time - start_time) * 1000)
         ))
 
-        return class_names[prediction.argmax()]
+        return (class_names[prediction.argmax()], int(prediction[prediction.argmax()] * 100))

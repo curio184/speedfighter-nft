@@ -48,7 +48,7 @@ class SpeedMonitorController(AppBase):
         # callbackにMainThreadのMethodを直接指定するとThreadUnsafeな仕様になっており、
         # また、callbackされたMethod内で重い処理を行うとチャタリングを引き起こすため、
         # 独自のThreadSafeなEventHandlerを通じて呼び出すようにしている。
-        button_clicked_event_handler = EventHandler(self)
+        button_clicked_event_handler = EventHandler(self, 10)
         GPIO.add_event_detect(PIN_SWITCH_1, GPIO.RISING, callback=button_clicked_event_handler.fire, bouncetime=200)
         GPIO.add_event_detect(PIN_SWITCH_2, GPIO.RISING, callback=button_clicked_event_handler.fire, bouncetime=200)
         GPIO.add_event_detect(PIN_SWITCH_3, GPIO.RISING, callback=button_clicked_event_handler.fire, bouncetime=200)
