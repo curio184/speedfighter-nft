@@ -3,11 +3,16 @@ from typing import List
 
 import cv2
 
-from speedfighter.digit_recognition.image_classifier import ImageClassifier
+try:
+    # Desktop Only
+    from speedfighter.digit_recognition.image_classifier import ImageClassifier
+    from speedfighter.digit_recognition.tfmodel_converter import \
+        TFModelConverter
+except:
+    pass
 from speedfighter.digit_recognition.image_classifier_lite import \
     ImageClassifierLite
 from speedfighter.digit_recognition.seven_seg_splitter import SevenSegSplitter
-from speedfighter.digit_recognition.tfmodel_converter import TFModelConverter
 from speedfighter.digit_recognition.training_dataset_creator import \
     TrainingDatasetCreator
 from speedfighter.digit_recognition.video_camera import VideoCamera
