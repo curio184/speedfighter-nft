@@ -11,7 +11,7 @@
 * 音声の読み上げにはVOICEVOX
 * NFTの発行にはSymbolブロックチェーン
 
-使用したスピードガンはこちら
+使用したスピードガンはこちら  
 Bushnell 101911 Velocity Speed Gun
 
 セットアップ手順と使い方
