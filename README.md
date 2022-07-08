@@ -19,7 +19,12 @@ Bushnell 101911 Velocity Speed Gun
 
 私自身が使うためのプロジェクトのため最低限のざっくりです。
 
-下記ドキュメントを参照  
+1. カメラで学習画像を撮影し、
+2. 数字別に画像を分類、
+3. TensorFlowでモデルを訓練し、
+4. Symbolウォレットの準備ができたらセットアップは完了です。
+
+詳細は下記ドキュメントを参照  
 ./docs/setup_windows.md  
 ./docs/setup_raspberry_pi.md  
 ./docs/how_to_use.md
