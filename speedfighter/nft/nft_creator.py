@@ -160,15 +160,15 @@ class NFTCreator(AppBase):
 
         # モザイクトランザクションをアナウンス
         self._logger.info("Announcing mosaic transaction.")
-        # self._announce_transaction(mosaic_tx_signed[0], mosaic_tx_signed[1])
+        self._announce_transaction(mosaic_tx_signed[0], mosaic_tx_signed[1])
 
         # メタデータトランザクションをアナウンス
         self._logger.info("Announcing mosaic metadata transaction.")
-        # self._announce_transaction(mosaic_meta_tx_signed[0], mosaic_meta_tx_signed[1])
+        self._announce_transaction(mosaic_meta_tx_signed[0], mosaic_meta_tx_signed[1])
 
         # モザイクの転送トランザクションをアナウンス
         self._logger.info("Announcing mosaic metadata transaction.")
-        # self._announce_transaction(mosaic_trans_tx_signed[0], mosaic_trans_tx_signed[1])
+        self._announce_transaction(mosaic_trans_tx_signed[0], mosaic_trans_tx_signed[1])
 
         # NFTの作成結果をローカルに保存する
         self._save_nft_summary(
