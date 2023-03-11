@@ -45,9 +45,20 @@ class NFTCreator(AppBase):
         catapult_api = CatapultRESTAPI(self._node_url)
         self._epoch_adjustment = catapult_api.get_epoch_adjustment()      # 1637848847
         self._currency_mosaic_id = catapult_api.get_currency_mosaic_id()  # symbol.xym, 0x3A8416DB2D53B6C8
+        self._fee_multipliers = catapult_api.get_fee_info()
+        self._logger.info(f"fee_multipliers: {self._fee_multipliers}")
 
         # トランザクション設定
-        self._max_fee = Amount(ini_file.get_int("transaction", "max_fee"))
+        fee_status = ini_file.get_str("transaction", "fee_status")
+        fee_ratio = ini_file.get_int("transaction", "fee_ratio")
+        fee_status = "averageFeeMultiplier" if "average" in fee_status.lower() else fee_status
+        fee_status = "medianFeeMultiplier" if "median" in fee_status.lower() else fee_status
+        fee_status = "highestFeeMultiplier" if "highest" in fee_status.lower() else fee_status
+        fee_status = "lowestFeeMultiplier" if "lowest" in fee_status.lower() else fee_status
+        fee_status = "minFeeMultiplier" if "min" in fee_status.lower() else fee_status
+        self._max_fee_per_tx = self._fee_multipliers[fee_status] * fee_ratio
+        self._max_fee_per_aggregate_tx = ini_file.get_int("transaction", "max_fee_per_aggregate_tx")
+        self._min_fee_per_aggregate_tx = ini_file.get_int("transaction", "min_fee_per_aggregate_tx")
         self._expiration_hour = ini_file.get_int("transaction", "expiration_hour")
 
         self._facade = SymbolFacade(self._network_name)
@@ -149,15 +160,15 @@ class NFTCreator(AppBase):
 
         # モザイクトランザクションをアナウンス
         self._logger.info("Announcing mosaic transaction.")
-        self._announce_transaction(mosaic_tx_signed[0], mosaic_tx_signed[1])
+        # self._announce_transaction(mosaic_tx_signed[0], mosaic_tx_signed[1])
 
         # メタデータトランザクションをアナウンス
         self._logger.info("Announcing mosaic metadata transaction.")
-        self._announce_transaction(mosaic_meta_tx_signed[0], mosaic_meta_tx_signed[1])
+        # self._announce_transaction(mosaic_meta_tx_signed[0], mosaic_meta_tx_signed[1])
 
         # モザイクの転送トランザクションをアナウンス
         self._logger.info("Announcing mosaic metadata transaction.")
-        self._announce_transaction(mosaic_trans_tx_signed[0], mosaic_trans_tx_signed[1])
+        # self._announce_transaction(mosaic_trans_tx_signed[0], mosaic_trans_tx_signed[1])
 
         # NFTの作成結果をローカルに保存する
         self._save_nft_summary(
@@ -270,7 +281,7 @@ class NFTCreator(AppBase):
             aggregate_tx = self._facade.transaction_factory.create({
                 "type": "aggregate_complete_transaction",
                 "signer_public_key": self._provider_public_key,
-                "fee": self._max_fee,
+                "fee": Amount(self._calc_fee(len(inner_txs_group))),
                 "deadline": deadline,
                 "transactions_hash": self._facade.hash_embedded_transactions(inner_txs_group),
                 "transactions": inner_txs_group
@@ -312,7 +323,7 @@ class NFTCreator(AppBase):
         aggregate_tx: AggregateCompleteTransaction = self._facade.transaction_factory.create({
             "type": "aggregate_complete_transaction",
             "signer_public_key": self._provider_public_key,
-            "fee": self._max_fee,
+            "fee": Amount(self._calc_fee(3)),
             "deadline": deadline,
             "transactions_hash": self._facade.hash_embedded_transactions([tx1, tx2]),
             "transactions": [tx1, tx2]
@@ -347,7 +358,7 @@ class NFTCreator(AppBase):
         aggregate_tx: AggregateCompleteTransaction = self._facade.transaction_factory.create({
             "type": "aggregate_complete_transaction",
             "signer_public_key": self._provider_public_key,
-            "fee": self._max_fee,
+            "fee": Amount(self._calc_fee(len(inner_txs))),
             "deadline": deadline,
             "transactions_hash":  self._facade.hash_embedded_transactions(inner_txs),
             "transactions": inner_txs
@@ -369,7 +380,7 @@ class NFTCreator(AppBase):
             "type": "transfer_transaction",
             "signer_public_key": self._provider_public_key,
             "deadline": deadline,
-            "fee": self._max_fee,
+            "fee": Amount(self._calc_fee(1)),
             "recipient_address": record_holder_address,
             "mosaics": mosaics,
             # NOTE: additional 0 byte at the beginning is added for compatibility with explorer
@@ -446,3 +457,15 @@ class NFTCreator(AppBase):
                 "mosaic_transfer_transaction": mosaic_trans_tx
             }
         )
+
+    def _calc_fee(self, tx_count: int) -> int:
+        """
+        トランザクションの手数料を計算する
+        """
+        tx_fee = self._max_fee_per_tx * tx_count
+        if tx_fee < self._min_fee_per_aggregate_tx:
+            tx_fee = self._min_fee_per_aggregate_tx
+        if tx_fee > self._max_fee_per_aggregate_tx:
+            tx_fee = self._max_fee_per_aggregate_tx
+        self._logger.info(f"Calculate fee. tx_count:{tx_count}, tx_fee:{tx_fee}")
+        return tx_fee

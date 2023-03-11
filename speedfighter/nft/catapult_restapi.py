@@ -72,3 +72,13 @@ class CatapultRESTAPI:
         if response.status_code != 200:
             raise Exception("status code is {}".format(response.status_code))
         return json.loads(response.text)
+
+    def get_fee_info(self) -> Dict:
+        """
+        Get fee information
+        """
+        url = self._node_url + "/network/fees/transaction"
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise Exception("status code is {}".format(response.status_code))
+        return json.loads(response.text)
