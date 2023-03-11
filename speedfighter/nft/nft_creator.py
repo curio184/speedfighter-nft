@@ -275,6 +275,7 @@ class NFTCreator(AppBase):
                 "transactions_hash": self._facade.hash_embedded_transactions(inner_txs_group),
                 "transactions": inner_txs_group
             })
+            aggregate_tx.version = 2
             aggregate_txs.append(aggregate_tx)
 
         return aggregate_txs
@@ -316,6 +317,7 @@ class NFTCreator(AppBase):
             "transactions_hash": self._facade.hash_embedded_transactions([tx1, tx2]),
             "transactions": [tx1, tx2]
         })
+        aggregate_tx.version = 2
 
         return aggregate_tx
 
@@ -350,6 +352,7 @@ class NFTCreator(AppBase):
             "transactions_hash":  self._facade.hash_embedded_transactions(inner_txs),
             "transactions": inner_txs
         })
+        aggregate_tx.version = 2
 
         return aggregate_tx
 
